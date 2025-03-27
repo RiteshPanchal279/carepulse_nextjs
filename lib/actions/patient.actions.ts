@@ -27,7 +27,20 @@ export const getUser=async (userId:string)=>{
 
       return parseStringify(user)
    } catch (error) {
-      console.log("Registerr user error: ",error)
+      console.error("Registerr user error: ",error)
+   }
+}
+
+export const getPatient=async (userId:string)=>{
+   try {
+      const patients = await database.listDocuments(
+         process.env.NEXT_PUBLIC_DATABASE_ID!,
+         process.env.NEXT_PUBLIC_PATIENT_COLLECTION_ID!,
+         [Query.equal('userId',userId)]);
+
+      return parseStringify(patients.documents[0]);
+   } catch (error) {
+      console.error("get Patient user error: ",error)
    }
 }
 
@@ -57,6 +70,6 @@ export const registerPatient = async({identificationDocument,...patient}:Registe
       return parseStringify(newPatient);
 
    } catch (error) {
-      console.log("An error occurred while creating a new patient:", error)
+      console.error("An error occurred while creating a new patient:", error)
    }
 }
