@@ -7,13 +7,13 @@ import { Form } from "@/components/ui/form";
 import CaustomeFormField from "../CaustomeFormField";
 import SubmitButton from "../SubmitButton";
 import { useState } from "react";
-import { UserFormValidation } from "@/lib/validation";
+import { getAppointmentSchema } from "@/lib/validation";
 import { useRouter } from "next/navigation";
-import { createUser } from "@/lib/actions/patient.actions";
 import { FormFieldType } from "./PatientForm";
 import { Doctors } from "@/constants";
 import { SelectItem } from "../ui/select";
 import Image from "next/image";
+import { createAppointment } from "@/lib/actions/appointment.actions";
 
 const AppointmentForm = ({
   userId,
@@ -22,42 +22,82 @@ const AppointmentForm = ({
 }: {
   userId: string;
   patientId: string;
-  type: "create" | "cancel";
+  type: "create" | "cancel" |"schedule";
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  const AppontmentFormValidation = getAppointmentSchema(type);
+
   // 1. Define your form.
-  const form = useForm<z.infer<typeof UserFormValidation>>({
-    resolver: zodResolver(UserFormValidation),
+  const form = useForm<z.infer<typeof AppontmentFormValidation>>({
+    resolver: zodResolver(AppontmentFormValidation),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
+      primaryPhysician: "",
+      schedule: new Date(),
+      note: "",
+      cancellationReason:""
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
+  const onSubmit = async (values: z.infer<typeof AppontmentFormValidation>) => {
     setIsLoading(true);
 
+    let status;
+    switch(type){
+      case 'schedule':
+        status="scheduled";
+        break;
+      case 'cancel':
+        status='cancelled';
+        break;
+      default:
+        status='pending';
+        break;
+    }
+    console.log("beforte the type",type)
+
+
     try {
-      const user = {
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-      };
-
-      const newUser = await createUser(user);
-      console.log(newUser);
-
-      if (newUser) {
-        router.push(`/patients/${newUser.$id}/register`);
+      
+      if(type==='create' && patientId){
+        const appointmentData={
+          userId,
+          patient:patientId,
+          primaryPhysician:values.primaryPhysician,
+          schedule:new Date(values.schedule),
+          reason:values.reason!,
+          note:values.note,
+          status:status as Status,
+        }
+        const appointment = await createAppointment(appointmentData);
+        if(appointment){
+          form.reset();
+          router.push(`/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`)
+        }
       }
+
+
     } catch (error) {
       console.log(error);
     }
 
     setIsLoading(false);
   };
+
+  let buttonLabel;
+
+  switch(type){
+    case 'cancel':
+      buttonLabel='Cancel Appointment';
+      break;
+    case 'create':
+      buttonLabel='Create Appointment';
+      break;
+    case 'schedule':
+      buttonLabel='Schedule Appointment';
+      break;
+  }
 
   return (
     <Form {...form}>
@@ -110,14 +150,14 @@ const AppointmentForm = ({
               <CaustomeFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
-                name="reson"
+                name="reason"
                 label="Reason for appointment"
                 placeholder="Enter reason for appointment "
               />
               <CaustomeFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
-                name="notes"
+                name="note"
                 label="Notes"
                 placeholder="Enter notes"
               />
@@ -125,7 +165,20 @@ const AppointmentForm = ({
           </>
         )}
 
-        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+        {
+          type==="cancel" && (
+            <CaustomeFormField
+            fieldType={FormFieldType.TEXTAREA}
+                control={form.control}
+                name="cancellationReason"
+                label="Reason for cancellation"
+                placeholder="Enter reason for cancellation"
+            
+            />
+          )
+        }
+
+        <SubmitButton isLoading={isLoading} className={`${type==='cancel'?'bg-red-700 text-white !important' : 'bg-green-500 text-white !important'} w-full`}>{buttonLabel}</SubmitButton>
       </form>
     </Form>
   );

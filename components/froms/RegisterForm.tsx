@@ -123,6 +123,7 @@ const RegisterForm = ({ user }: { user: User }) => {
             control={form.control}
             name="birthDate"
             label="Date of Birth"
+            dateFormate="MM/dd/yyy"
           />
           <CaustomeFormField
             fieldType={FormFieldType.SKELETON}

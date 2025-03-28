@@ -3,9 +3,10 @@ import { getPatient } from "@/lib/actions/patient.actions";
 
 import Image from "next/image";
 
-export default async function NewAppointment({params:{userId}}:SearchParamProps) {
-
-const patient = await getPatient(userId);
+ const  Appointment=async({
+  params: { userId },
+}: SearchParamProps)=> {
+  const patient = await getPatient(userId);
 
   return (
     <div className="flex min-h-screen w-screen">
@@ -15,13 +16,16 @@ const patient = await getPatient(userId);
             src="/assets/icons/logo-full.svg"
             height={1000}
             width={1000}
-            alt="patient"
+            alt="logo"
             className="mb-12 h-10 w-auto "
           />
-          <AppointmentForm type="create" userId={userId} patientId ={patient.$id} />
+          <AppointmentForm
+            type="create"
+            userId={userId}
+            patientId={patient.$id}
+          />
 
-          <p className="text-[#76828D] text-[12px]">©2025 CarePulse</p>
-          
+          <p className="text-[#76828D] mt-10 text-[12px]">©2025 CarePulse</p>
         </div>
       </section>
 
@@ -38,3 +42,5 @@ const patient = await getPatient(userId);
     </div>
   );
 }
+
+export default Appointment;
