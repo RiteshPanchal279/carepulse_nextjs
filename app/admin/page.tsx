@@ -1,19 +1,13 @@
-import {DataTable} from "@/components/table/DataTable";
+import { DataTable } from "@/components/table/DataTable";
 import StatCard from "@/components/StatCard";
 import { getRecentAppointmentList } from "@/lib/actions/appointment.actions";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import {columns, Payment} from "@/components/table/columns";
+import { columns } from "@/components/table/columns";
 
-
-
-
-
-const Admin = async() => {
-
-   const appointments = await getRecentAppointmentList()
-
+const Admin = async () => {
+  const appointments = await getRecentAppointmentList();
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col space-y-14">
@@ -40,26 +34,27 @@ const Admin = async() => {
 
         <section className="flex w-full flex-col justify-between gap-5 sm:flex-row xl:gap-10">
           <StatCard
-            type='appointments'
+            type="appointments"
             count={appointments.scheduledCount}
-            label='Scheduled appointments'
-            icon='/assets/icons/appointments.svg'
+            label="Scheduled appointments"
+            icon="/assets/icons/appointments.svg"
           />
           <StatCard
-            type='pending'
+            type="pending"
             count={appointments.pendingCount}
-            label='Pending appointments'
-            icon='/assets/icons/pending.svg'
+            label="Pending appointments"
+            icon="/assets/icons/pending.svg"
           />
           <StatCard
-            type='cancelled'
+            type="cancelled"
             count={appointments.cancelledCount}
-            label='Cancelled appointments'
-            icon='/assets/icons/cancelled.svg'
+            label="Cancelled appointments"
+            icon="/assets/icons/cancelled.svg"
           />
         </section>
-
-        <DataTable columns={columns} data={appointments.documents} />
+        <div className="w-full">
+          <DataTable columns={columns} data={appointments.documents} />
+        </div>
       </main>
     </div>
   );

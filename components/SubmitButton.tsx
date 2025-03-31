@@ -12,7 +12,7 @@ interface ButtonProps{
 
 const SubmitButton = ({isLoading,className,children}:ButtonProps) => {
   return (
-    <Button type='submit' disabled={isLoading} className={className ?? 'shad-primary-btn bg-green-600 w-full cursor-pointer '}  >
+    <Button type='submit' disabled={isLoading} className={className ?? 'shad-primary-btn bg-green-600 hover:bg-green-600 w-full cursor-pointer '}  >
       {isLoading?(
          <div className='flex items-center gap-4'>
             <Image  

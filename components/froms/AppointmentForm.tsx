@@ -13,16 +13,24 @@ import { FormFieldType } from "./PatientForm";
 import { Doctors } from "@/constants";
 import { SelectItem } from "../ui/select";
 import Image from "next/image";
-import { createAppointment } from "@/lib/actions/appointment.actions";
+import {
+  createAppointment,
+  updateAppointment,
+} from "@/lib/actions/appointment.actions";
+import { Appointment } from "@/types/appwrite.types";
 
 const AppointmentForm = ({
   userId,
   patientId,
   type,
+  setOpen,
+  appointment,
 }: {
   userId: string;
   patientId: string;
-  type: "create" | "cancel" |"schedule";
+  type: "create" | "cancel" | "schedule";
+  appointment?: Appointment;
+  setOpen: (open: boolean) => void;
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +41,13 @@ const AppointmentForm = ({
   const form = useForm<z.infer<typeof AppontmentFormValidation>>({
     resolver: zodResolver(AppontmentFormValidation),
     defaultValues: {
-      primaryPhysician: "",
-      schedule: new Date(),
-      note: "",
-      cancellationReason:""
+      primaryPhysician: appointment ? appointment?.primaryPhysician : "",
+      schedule: appointment
+        ? new Date(appointment?.schedule!)
+        : new Date(Date.now()),
+      reason: appointment ? appointment.reason : "",
+      note: appointment?.note || "",
+      cancellationReason: appointment?.cancellationReason || "",
     },
   });
 
@@ -44,58 +55,77 @@ const AppointmentForm = ({
     setIsLoading(true);
 
     let status;
-    switch(type){
-      case 'schedule':
-        status="scheduled";
+    switch (type) {
+      case "schedule":
+        status = "scheduled";
         break;
-      case 'cancel':
-        status='cancelled';
+      case "cancel":
+        status = "cancelled";
         break;
       default:
-        status='pending';
+        status = "pending";
         break;
     }
-    console.log("beforte the type",type)
-
+    console.log("beforte the type", type);
 
     try {
-      
-      if(type==='create' && patientId){
-        const appointmentData={
+      if (type === "create" && patientId) {
+        const appointmentData = {
           userId,
-          patient:patientId,
-          primaryPhysician:values.primaryPhysician,
-          schedule:new Date(values.schedule),
-          reason:values.reason!,
-          note:values.note,
-          status:status as Status,
-        }
+          patient: patientId,
+          primaryPhysician: values.primaryPhysician,
+          schedule: new Date(values.schedule),
+          reason: values.reason!,
+          note: values.note,
+          status: status as Status,
+        };
         const appointment = await createAppointment(appointmentData);
-        if(appointment){
+        if (appointment) {
           form.reset();
-          router.push(`/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`)
+          router.push(
+            `/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`
+          );
+        }
+      } else {
+        const apppointmentToUpdate = {
+          userId,
+          appointmentId: appointment?.$id!,
+          appointment: {
+            primaryPhysician: values?.primaryPhysician,
+            schedule: new Date(values?.schedule),
+            status: status as Status,
+            cancellationReason: values?.cancellationReason,
+          },
+          type,
+        };
+        const updatedAppointment = await updateAppointment(
+          apppointmentToUpdate
+        );
+        if (updatedAppointment) {
+          setOpen && setOpen(false);
+          form.reset();
         }
       }
-
-
     } catch (error) {
       console.log(error);
+    }finally{
+      setIsLoading(false);
     }
 
-    setIsLoading(false);
+
   };
 
   let buttonLabel;
 
-  switch(type){
-    case 'cancel':
-      buttonLabel='Cancel Appointment';
+  switch (type) {
+    case "cancel":
+      buttonLabel = "Cancel Appointment";
       break;
-    case 'create':
-      buttonLabel='Create Appointment';
+    case "create":
+      buttonLabel = "Create Appointment";
       break;
-    case 'schedule':
-      buttonLabel='Schedule Appointment';
+    case "schedule":
+      buttonLabel = "Schedule Appointment";
       break;
   }
 
@@ -105,12 +135,14 @@ const AppointmentForm = ({
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 flex-1 "
       >
-        <section className="mb-12 space-y-3">
-          <h1 className="text-2xl font-semibold">New Appointment</h1>
-          <p className="text-[#ABB8C4] text-sm">
-            Request a new appointment in 10 second
-          </p>
-        </section>
+        {type === "create" && (
+          <section className="mb-12 space-y-3">
+            <h1 className="text-2xl font-semibold">New Appointment</h1>
+            <p className="text-[#ABB8C4] text-sm">
+              Request a new appointment in 10 second
+            </p>
+          </section>
+        )}
 
         {type !== "cancel" && (
           <>
@@ -165,20 +197,26 @@ const AppointmentForm = ({
           </>
         )}
 
-        {
-          type==="cancel" && (
-            <CaustomeFormField
+        {type === "cancel" && (
+          <CaustomeFormField
             fieldType={FormFieldType.TEXTAREA}
-                control={form.control}
-                name="cancellationReason"
-                label="Reason for cancellation"
-                placeholder="Enter reason for cancellation"
-            
-            />
-          )
-        }
+            control={form.control}
+            name="cancellationReason"
+            label="Reason for cancellation"
+            placeholder="Enter reason for cancellation"
+          />
+        )}
 
-        <SubmitButton isLoading={isLoading} className={`${type==='cancel'?'bg-red-700 text-white !important' : 'bg-green-500 text-white !important'} w-full`}>{buttonLabel}</SubmitButton>
+        <SubmitButton
+          isLoading={isLoading}
+          className={`${
+            type === "cancel"
+              ? "bg-red-700 text-white !important"
+              : "bg-green-500 text-white !important"
+          } w-full`}
+        >
+          {buttonLabel}
+        </SubmitButton>
       </form>
     </Form>
   );
