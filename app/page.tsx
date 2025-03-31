@@ -10,7 +10,7 @@ const isAdmin = searchParams?.admin==='true';
   return (
     <div className="flex min-h-screen w-screen">
       {isAdmin && (<PasskeyModel/>)}
-      <section className="sm:w-1/2 flex items-center justify-center p-4">
+      <section className="w-full sm:w-1/2 flex items-center justify-center p-4">
         <div className="w-[426px]  ">
           <Image
             src="/assets/icons/logo-full.svg"
