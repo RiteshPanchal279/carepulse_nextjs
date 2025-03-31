@@ -135,7 +135,7 @@ const RegisterForm = ({ user }: { user: User }) => {
             renderSkeleton={(field) => (
               <FormControl>
                 <RadioGroup
-                  className="flex h-11 gap-6 xl:justify-between "
+                  className="flex gap-2 xl:justify-between flex-col sm:flex-row "
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
