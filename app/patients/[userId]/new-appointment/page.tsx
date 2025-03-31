@@ -22,7 +22,7 @@ import Image from "next/image";
           <AppointmentForm
             type="create"
             userId={userId}
-            patientId={patient.$id}
+            patientId={patient?.$id}
           />
 
           <p className="text-[#76828D] mt-10 text-[12px]">©2025 CarePulse</p>
